@@ -87,13 +87,14 @@ if st.button("Find Shared Games"):
         st.subheader("🎲 Multiplayer games owned by all")
         if shared_appids:
             name_lookup = user_libraries[0]
-            filtered_games = filter_multiplayer(shared_appids)
-            sorted = filtered_games.sort(key=lambda x: x['player_count'], reverse=True)
-            for gameobj in filtered_games:
-                appid = gameobj['gameid']
-                players = gameobj['player_count']
-                game_name = name_lookup.get(appid, f"AppID {appid}")
-                st.write(f"- [{game_name}](https://store.steampowered.com/app/{appid}) (Current players: {players})")
+            with st.spinner("Getting game data..."):
+                filtered_games = filter_multiplayer(shared_appids)
+                sorted = filtered_games.sort(key=lambda x: x['player_count'], reverse=True)
+                for gameobj in filtered_games:
+                    appid = gameobj['gameid']
+                    players = gameobj['player_count']
+                    game_name = name_lookup.get(appid, f"AppID {appid}")
+                    st.write(f"- [{game_name}](https://store.steampowered.com/app/{appid}) (Current players: {players})")
         else:
             st.info("No shared games found among these users.")
 
