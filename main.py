@@ -36,13 +36,32 @@ def filter_multiplayer(appids):
             cats = data[str(game)]['data']['categories']
             ismulti = True if any(item.get("id")==1 for item in cats) else False
             if ismulti:
-                multi.append(game)
+                players = get_players(game)
+                gameobj = {
+                    "gameid": game,
+                    "player_count": players
+                }
+                multi.append(gameobj)
         except Exception as e:
             print(game, "has error")
             # st.error(f"Error checking multiplayer for {game}: {e}")
-
+    
     return multi
 
+def get_players(gameid):
+    url = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/"
+    players = 0
+    params = {
+        "appid": gameid
+    }
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        data = response.json()
+        players = data['response']['player_count']
+    except:
+        pass
+
+    return players
 
 st.title("🎮 Shared Steam Games Finder")
 
@@ -68,10 +87,13 @@ if st.button("Find Shared Games"):
         st.subheader("🎲 Multiplayer games owned by all")
         if shared_appids:
             name_lookup = user_libraries[0]
-
-            for appid in sorted(filter_multiplayer(shared_appids)):
+            filtered_games = filter_multiplayer(shared_appids)
+            sorted = filtered_games.sort(key=lambda x: x['player_count'], reverse=True)
+            for gameobj in filtered_games:
+                appid = gameobj['gameid']
+                players = gameobj['player_count']
                 game_name = name_lookup.get(appid, f"AppID {appid}")
-                st.write(f"- [{game_name}](https://store.steampowered.com/app/{appid}) (AppID: {appid})")
+                st.write(f"- [{game_name}](https://store.steampowered.com/app/{appid}) (Current players: {players})")
         else:
             st.info("No shared games found among these users.")
 
